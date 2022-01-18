@@ -1,4 +1,5 @@
 lib
+.github
 
 package-lock.json
 tsconfig.json

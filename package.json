@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "publish:npm": "npm publish --access public",
-    "release": "release-it --no-git.requireCleanWorkingDir"
+    "release": "release-it --no-git.requireCleanWorkingDir",
+    "release:ci": "release-it --ci"
   },
   "author": "Damien Eichhorn",
   "license": "MIT",
