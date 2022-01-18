@@ -1,6 +1,6 @@
 {
-  "name": "@dawreck/nestjs-response-schema",
-  "version": "0.0.12",
+  "name": "nestjs-response-schema",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "description": "A package for setting up strict NestJS response schema's",
   "scripts": {
