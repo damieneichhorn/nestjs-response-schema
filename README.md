@@ -1,15 +1,88 @@
 # nestjs-response-schema
+
 A package for declaring and enforcing responses in NestJS
 
-## Installing
+Declaring responses and response DTO's has always been difficult in NestJS, atleast that is what I think.
+
+NestJS has had class-transformer support for a while, allowing you to declaratively expose/exclude properties from
+entities when recieving them in a request or using them in a response. Within class-transformer however it is more
+difficult to make specific response dto's that expose certain properties and when done, it is difficult to make nested
+structures.
+
+To get both these things right, a lot of nested class structures are needed which requires a lot of work to setup. To
+make this easier, nestjs-response-schema comes with a object structure to easily setup nested structures using native
+types(String, Number, Boolean, Array, Object) to enforce a certain response structure, making it almost impossible to
+spill properties in a response that you don't want.
+
+A little example is shown below:
+
+Let's say we have the following response structure
+
+```javascript
+const response = {
+  username: 'dawreck',
+  password: '',
+  todos: [
+    {description: 'this is my first todo', done: true, createdAt: '1642503108'},
+    {description: 'i also need to do this', done: false, createdAt: '1642503118'}
+  ]
+}
+```
+
+We then create a response schema and add it to the controller as follows:
+
+```javascript
+import {StringValue} from 'nestjs-response-schema';
+
+const schema = {
+  username: StringValue,
+  todos: [
+    {description: StringValue, done: BooleanValue}
+  ]
+}
+```
+
+```javascript
+@ResponseSchema(schema)
+@Get('')
+getInformation() {
+  return response;
+}
+```
+
+This will enable the ResponseSchemaInterceptor to run on the response, producing the following output:
+
+```json
+{
+  "username": "dawreck",
+  "todos": [
+    {
+      "description": "this is my first todo",
+      "done": true
+    },
+    {
+      "description": "i also need to do this",
+      "done": false
+    }
+  ]
+}
+```
+
+## Getting Started
+
+---
+
 First, start by installing nestjs-response-schema by running the following command:
+
 ```shell
 npm i nestjs-response-schema
 ```
 
-After installing the package, include the module in your app module and register it using the register method. (This loads the module globally)
+After installing the package, include the module in your app module and register it using the register method. (This
+loads the module globally)
+
 ```javascript
-import { ResponseSchemaModule } from 'nestjs-response-schema';
+import {ResponseSchemaModule} from 'nestjs-response-schema';
 
 @Module({
   imports: [
@@ -18,34 +91,57 @@ import { ResponseSchemaModule } from 'nestjs-response-schema';
     }),
   ],
 })
-export class AppModule {}
+export class AppModule {
+}
 
 ```
 
 ## Options
+
+---
+
+
 Currently the following options are supported
- - strictKeyCheck: boolean
- - strictTypeCheck: boolean
- - onStrictKeyCheckFail: function
- - onStrictTypeCheckFail: function
+
+- strictKeyCheck: boolean
+- strictTypeCheck: boolean
+- onStrictKeyCheckFail: function
+- onStrictTypeCheckFail: function
 
 ### strictKeyCheck
-This option allows you to enable/disable the strict key check. This checks the keys from received data against the keys from the schema. When a key that is in the schema, is missing from the data, it will throw an InternalServerException. This behavior is overridable by the onStrictKeyCheckFail option.
+
+This option allows you to enable/disable the strict key check. This checks the keys from received data against the keys
+from the schema. When a key that is in the schema, is missing from the data, it will throw an InternalServerException.
+This behavior is overridable by the onStrictKeyCheckFail option.
 
 ### strictTypeCheck
-This option allows you to enable/disable the strict type check. This checks the types from received data values against the types from the schema. When the data value type doesn't match the schema type, it will throw an InternalServerException. This behavior is overridable by the onStrictTypeCheckFail option.
+
+This option allows you to enable/disable the strict type check. This checks the types from received data values against
+the types from the schema. When the data value type doesn't match the schema type, it will throw an
+InternalServerException. This behavior is overridable by the onStrictTypeCheckFail option.
 
 ### onStrictKeyCheckFail
-This option allows you to override what happens when a strict key check fails. This function receives the currently evaluated schema, data and the key that is evaluated as arguments.
+
+This option allows you to override what happens when a strict key check fails. This function receives the currently
+evaluated schema, data and the key that is evaluated as arguments.
 
 ### onStrictTypeCheckFail
-This option allows you to override what happens when a strict type check fails. This function receives the currently evaluated schema, data and the key that is evaluated as arguments.
+
+This option allows you to override what happens when a strict type check fails. This function receives the currently
+evaluated schema, data and the key that is evaluated as arguments.
 
 ## How to use
-To start using the response schema's after installing, start by annotating a controller method with the `@ResponseSchema(schema, statusCode)` decorator. This decorator takes a schema as the argument and an optional statusCode.
 
-Schema's are made as objects and are constructed with key value pairs, the keys being the name of the property, and the values being the expected types.
-This package makes use of it's own type to handle the underlying logic. Currently the following types are supported:
+---
+
+To start using the response schema's after installing, start by annotating a controller method with
+the `@ResponseSchema(schema, statusCode)` decorator. This decorator takes a schema as the argument and an optional
+statusCode.
+
+Schema's are made as objects and are constructed with key value pairs, the keys being the name of the property, and the
+values being the expected types. This package makes use of it's own type to handle the underlying logic. Currently the
+following types are supported:
+
 - StringValue
 - NumberValue
 - BooleanValue
@@ -53,11 +149,15 @@ This package makes use of it's own type to handle the underlying logic. Currentl
 - Array
 
 ### StringValue
+
+---
+
 A StringValue represents a basic string.
 
 #### Schema
+
 ```javascript
-import { StringValue } from 'nestjs-response-schema';
+import {StringValue} from 'nestjs-response-schema';
 
 const schema = {
   name: StringValue
@@ -65,6 +165,7 @@ const schema = {
 ```
 
 #### Data
+
 ```javascript
 const data = {
   name: 'test',
@@ -73,22 +174,28 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "name": "test"
 }
 ```
-A StringValue can also be used with a function attached, allowing you to transform or aggregate data. The function received the data object with the containing key as an argument
+
+A StringValue can also be used with a function attached, allowing you to transform or aggregate data. The function
+received the data object with the containing key as an argument
+
 #### Schema
+
 ```javascript
 import { StringValue } from 'nestjs-response-schema';
 
 const schema = {
-  test: StringValue((data) => data.nested.name.substr(1,2))
+  test: StringValue((data) => data.nested.name.substr(1, 2))
 }
 ```
 
 #### Data
+
 ```javascript
 const data = {
   name: 'test',
@@ -100,6 +207,7 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "test": "el"
@@ -107,9 +215,13 @@ const data = {
 ```
 
 ### NumberValue
+
+---
+
 A NumberValue represents a basic numerical value
 
 #### Schema
+
 ```javascript
 import { NumberValue } from 'nestjs-response-schema';
 
@@ -119,6 +231,7 @@ const schema = {
 ```
 
 #### Data
+
 ```javascript
 const data = {
   id: 12,
@@ -127,13 +240,18 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "id": 12
 }
 ```
-A NumberValue can also be used with a function attached, allowing you to transform or aggregate data. The function received the data object with the containing key as an argument
+
+A NumberValue can also be used with a function attached, allowing you to transform or aggregate data. The function
+received the data object with the containing key as an argument
+
 #### Schema
+
 ```javascript
 import { NumberValue } from 'nestjs-response-schema';
 
@@ -143,6 +261,7 @@ const schema = {
 ```
 
 #### Data
+
 ```javascript
 const data = {
   id: 12,
@@ -154,6 +273,7 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "id": 1235
@@ -161,9 +281,13 @@ const data = {
 ```
 
 ### BooleanValue
+
+---
+
 A BooleanValue represents a basic boolean value
 
 #### Schema
+
 ```javascript
 import { BooleanValue } from 'nestjs-response-schema';
 
@@ -173,6 +297,7 @@ const schema = {
 ```
 
 #### Data
+
 ```javascript
 const data = {
   exposed: true,
@@ -181,13 +306,18 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "exposed": true
 }
 ```
-A BooleanValue can also be used with a function attached, allowing you to transform or aggregate data. The function received the data object with the containing key as an argument
+
+A BooleanValue can also be used with a function attached, allowing you to transform or aggregate data. The function
+received the data object with the containing key as an argument
+
 #### Schema
+
 ```javascript
 import { BooleanValue } from 'nestjs-response-schema';
 
@@ -197,6 +327,7 @@ const schema = {
 ```
 
 #### Data
+
 ```javascript
 const data = {
   exposed: true,
@@ -208,17 +339,21 @@ const data = {
 ```
 
 #### Output
+
 ```json
 {
   "cool": true
 }
 ```
 
-
 ### Object
+
+---
+
 nestjs-response-schema has supported for nested schema's and data and will automatically pick it up when it is used.
 
 #### Schema
+
 ```javascript
 import { StringValue } from 'nestjs-response-schema';
 
@@ -228,7 +363,9 @@ const schema = {
   }
 }
 ```
+
 #### Data
+
 ```javascript
 const data = {
   title: 'Hello World',
@@ -237,7 +374,9 @@ const data = {
   }
 }
 ```
+
 #### Output
+
 ```json
 {
   "content": {
@@ -245,30 +384,38 @@ const data = {
   }
 }
 ```
-### Array
-nestjs-response-schema also has support for arrays and defining the schema for array items.
-To define an array schema, just create an array with 1 item, and have that item just like any other schema object. It will force this schema upon any item in the data array
 
+### Array
+
+---
+
+nestjs-response-schema also has support for arrays and defining the schema for array items. To define an array schema,
+just create an array with 1 item, and have that item just like any other schema object. It will force this schema upon
+any item in the data array
 
 #### Schema
+
 ```javascript
 import { StringValue } from 'nestjs-response-schema';
 
 const schema = {
   items: [
-    { name: StringValue }
+    {name: StringValue}
   ]
 }
 ```
+
 #### Data
+
 ```javascript
 const data = {
   items: [
-    { name: 'test 1', hidden: 'hello' },
-    { name: 'test 2', hidden: 'hello2' },
+    {name: 'test 1', hidden: 'hello'},
+    {name: 'test 2', hidden: 'hello2'},
   ]
 }
 ```
+
 #### Output
 
 ```json
@@ -285,8 +432,12 @@ const data = {
 ```
 
 ## NestJS/Swagger
-This package will also set the @ApiResponse on the affected method with the right schema.
-It will by default set the response status to 200 unless specified 
+
+---
+
+
+This package will also set the @ApiResponse on the affected method with the right schema. It will by default set the
+response status to 200 unless specified
 
 `@ResponseSchema({})` will automatically make a Swagger Response with a 200 statusCode
 
@@ -294,3 +445,6 @@ Post requests in NestJS usually response with a 201 statusCode and thereof we ne
 `@ResponseSchema({}, 201)`
 
 ## Examples
+
+---
+
