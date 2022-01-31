@@ -41,9 +41,14 @@ export class ResponseSchemaInterceptor implements NestInterceptor {
         case 'array':
           if (hasKey) {
             if (schemaType === type) {
-              response[key] = value.map((i) =>
-                this.parseResponse(i, schema[key][0]),
-              );
+              if (typeof schema[key][0] === 'function') {
+                response[key] = schema[key][0]().callback(data, key);
+              } else {
+                response[key] = value.map((i) =>
+                    this.parseResponse(i, schema[key][0]),
+                );
+              }
+
             } else {
               if (this.options.strictTypeCheck) {
                 this.options.onStrictTypeCheckFail.call(
@@ -89,7 +94,7 @@ export class ResponseSchemaInterceptor implements NestInterceptor {
           }
           break;
         case 'function':
-          if (data[key]) {
+          if (data[key] !== null && data[key] !== undefined) {
             response[key] = schema[key]().callback(data, key);
           } else {
             if (this.options.strictKeyCheck) {
